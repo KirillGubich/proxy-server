@@ -19,7 +19,7 @@ public enum ErrorPageLoader {
         byte[] buffer = new byte[BUFFER_LENGTH];
         try (InputStream inputStream = new FileInputStream(ERROR_PAGE_PATH);
              BufferedInputStream bufferedStream = new BufferedInputStream(inputStream)) {
-            bufferedStream.read(buffer);
+            final int bytesRead = bufferedStream.read(buffer);
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -6,6 +6,7 @@ import by.bsuir.poit.csan.parser.TextParser;
 import by.bsuir.poit.csan.util.BlacklistLoader;
 import by.bsuir.poit.csan.util.DateTimeKeeper;
 import by.bsuir.poit.csan.util.ErrorPageLoader;
+import by.bsuir.poit.csan.view.Logger;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -24,6 +25,7 @@ public class ProxyServer {
     private static final int BUFFER_SIZE = 100000;
     private static final String HTTP_REGEX = "http://[a-z0-9а-яё:.]*";
     private static final int DATA_MIN_LENGTH = 32;
+    private static final Logger LOGGER = new Logger();
 
     public ProxyServer(int proxyPort) {
         this.proxyPort = proxyPort;
@@ -32,14 +34,13 @@ public class ProxyServer {
     public void start() {
         try {
             ServerSocket serverListener = new ServerSocket(proxyPort);
-            System.out.println("Start proxying on port: " + proxyPort);
             while (true) {
                 Socket client = serverListener.accept();
                 Thread thread = new Thread(() -> acceptRequest(client));
                 thread.start();
             }
         } catch (Exception e) {
-            System.out.println("Server is down");
+            LOGGER.log("Server is down");
         }
     }
 
@@ -70,16 +71,13 @@ public class ProxyServer {
         sendRequestToServer(toServerStream, clientRequest.getMessage());
         ServerResponse serverResponse = extractServerResponse(fromServerStream);
         sendResponseForClient(toClientStream, serverResponse.getMessage());
-        String currentDateTime = DateTimeKeeper.getCurrentDateTime();
-        System.out.println(currentDateTime + " " + clientRequest.getDestinationAddress()
-                + " " + serverResponse.getStatusCode());
+        LOGGER.log( clientRequest.getDestinationAddress() + " " + serverResponse.getStatusCode());
         joinStreams(fromServerStream, toClientStream);
     }
 
     private void denyAccess(OutputStream toClientStream, String destAddress) throws IOException {
         sendErrorPage(toClientStream);
-        String currentDateTime = DateTimeKeeper.getCurrentDateTime();
-        System.out.println(currentDateTime + " " + destAddress + " Access denied");
+        LOGGER.log(destAddress + " Access denied");
     }
 
     private void sendErrorPage(OutputStream toClientStream) throws IOException {
